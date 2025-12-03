@@ -4,9 +4,8 @@
     <application
         android:name=".MTGApp"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@android:drawable/ic_dialog_info"
         android:label="MTG &amp; TCG Toolkit"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MTGTCGToolkit">
 
