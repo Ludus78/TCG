@@ -2,6 +2,8 @@ package com.example.mtgtcgtoolkit.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +19,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -114,7 +118,6 @@ private fun updatePlayer(
     onStateChange(state.copy(players = newPlayers))
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlayerCard(
     modifier: Modifier = Modifier,
@@ -123,22 +126,9 @@ fun PlayerCard(
 ) {
     if (player == null) return
 
-    var commanderDamage by remember { mutableStateOf(player.commanderDamages.sumOf { it.damage }) }
-
     Card(
         modifier = modifier
             .padding(8.dp)
-            .pointerInput(player.id) {
-                detectVerticalDragGestures { _, dragAmount ->
-                    if (dragAmount < -10) {
-                        // vers le haut => +1 PV
-                        onPlayerChange(player.copy(life = player.life + 1))
-                    } else if (dragAmount > 10) {
-                        // vers le bas => -1 PV
-                        onPlayerChange(player.copy(life = player.life - 1))
-                    }
-                }
-            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
         )
@@ -156,20 +146,52 @@ fun PlayerCard(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            Text(
-                text = player.life.toString(),
-                fontSize = 40.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+            // Zone PV + boutons +/- visibles
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        // -1 PV sans limite
+                        onPlayerChange(player.copy(life = player.life - 1))
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(text = "-1", fontSize = 18.sp)
+                }
+
+                Text(
+                    text = player.life.toString(),
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+
+                Button(
+                    onClick = {
+                        // +1 PV sans limite
+                        onPlayerChange(player.copy(life = player.life + 1))
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Text(text = "+1", fontSize = 18.sp)
+                }
+            }
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 IconButton(onClick = {
-                    commanderDamage += 1
                     val list = player.commanderDamages.toMutableList()
                     val existing = list.firstOrNull { it.fromCommanderId == player.id }
                     if (existing == null) {
@@ -185,7 +207,7 @@ fun PlayerCard(
                     )
                 }
                 Text(
-                    text = commanderDamage.toString(),
+                    text = player.commanderDamages.sumOf { it.damage }.toString(),
                     modifier = Modifier.padding(start = 4.dp),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -242,7 +264,12 @@ fun TutorialOverlay(onDismiss: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xAA000000)),
+            .background(Color(0xAA000000))
+            .pointerInput(Unit) {
+                detectTapGestures {
+                    onDismiss()
+                }
+            },
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -263,22 +290,6 @@ fun TutorialOverlay(onDismiss: () -> Unit) {
                 textAlign = TextAlign.Center
             )
         }
-        // Détection simple du tap via LaunchedEffect + pas de blocage de l’UI
-        LaunchedEffect(Unit) {
-            // dans une vraie app, on utiliserait un Modifier.clickable sur un Box transparent
-        }
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .pointerInput(Unit) {
-                    detectVerticalDragGestures(
-                        onDragStart = {
-                            onDismiss()
-                        },
-                        onVerticalDrag = { _, _ -> }
-                    )
-                }
-        )
     }
 }
 
