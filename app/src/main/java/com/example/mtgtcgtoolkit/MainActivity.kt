@@ -4,6 +4,11 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.example.mtgtcgtoolkit.data.GamePreferences
 import com.example.mtgtcgtoolkit.model.GameState
@@ -36,21 +41,23 @@ class MainActivity : ComponentActivity() {
         val firstLaunch = prefs.isFirstLaunch()
 
         setContent {
-            var state = currentState
-            var showTutorial = firstLaunch
+            var state by remember { mutableStateOf(currentState) }
+            var showTutorial by remember { mutableStateOf(firstLaunch) }
 
-            GameScreen(
-                state = state,
-                onStateChange = {
-                    state = it
-                    currentState = it
-                },
-                showTutorial = showTutorial,
-                onDismissTutorial = {
-                    showTutorial = false
-                    prefs.setNotFirstLaunch()
-                }
-            )
+            MaterialTheme {
+                GameScreen(
+                    state = state,
+                    onStateChange = {
+                        state = it
+                        currentState = it
+                    },
+                    showTutorial = showTutorial,
+                    onDismissTutorial = {
+                        showTutorial = false
+                        prefs.setNotFirstLaunch()
+                    }
+                )
+            }
         }
     }
 

@@ -54,12 +54,13 @@ fun GameScreen(
 
     Surface(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
+        color = Color.Black
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(Color.Black)
         ) {
             if (isLandscape) {
                 TwoByTwoGrid(state = state, onStateChange = onStateChange)
