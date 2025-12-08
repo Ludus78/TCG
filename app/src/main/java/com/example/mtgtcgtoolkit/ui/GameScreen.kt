@@ -129,6 +129,7 @@ fun PlayerCard(
     Card(
         modifier = modifier
             .padding(8.dp)
+            ,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
         )
