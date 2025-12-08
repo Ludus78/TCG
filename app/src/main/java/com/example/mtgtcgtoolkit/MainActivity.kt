@@ -33,11 +33,6 @@ class MainActivity : ComponentActivity() {
 
         prefs = GamePreferences(this)
 
-        // Charger une éventuelle partie existante
-        prefs.loadGameState()?.let {
-            currentState = it
-        }
-
         val firstLaunch = prefs.isFirstLaunch()
 
         setContent {

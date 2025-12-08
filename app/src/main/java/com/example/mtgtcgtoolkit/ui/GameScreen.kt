@@ -2,6 +2,7 @@ package com.example.mtgtcgtoolkit.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -12,21 +13,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import com.example.mtgtcgtoolkit.R
 import com.example.mtgtcgtoolkit.model.CommanderDamage
 import com.example.mtgtcgtoolkit.model.GameState
@@ -127,25 +129,24 @@ fun PlayerCard(
 ) {
     if (player == null) return
 
-    Card(
+    Box(
         modifier = modifier
-            .padding(8.dp)
-            ,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-        )
+            .padding(2.dp)
+            .fillMaxSize()
+            .border(width = 2.dp, color = Color.White)
+            .background(Color.Black)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(6.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = player.name,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = Color.White
             )
 
             // Zone PV + boutons +/- visibles
@@ -156,37 +157,24 @@ fun PlayerCard(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             ) {
-                Button(
-                    onClick = {
-                        // -1 PV sans limite
-                        onPlayerChange(player.copy(life = player.life - 1))
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    )
-                ) {
-                    Text(text = "-1", fontSize = 18.sp)
-                }
+                RepeatButton(
+                    label = "-",
+                    onStep = { onPlayerChange(player.copy(life = player.life - 1)) }
+                )
 
                 Text(
                     text = player.life.toString(),
                     fontSize = 40.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    color = Color.White,
+                    modifier = Modifier.padding(horizontal = 6.dp)
                 )
 
-                Button(
-                    onClick = {
-                        // +1 PV sans limite
-                        onPlayerChange(player.copy(life = player.life + 1))
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Text(text = "+1", fontSize = 18.sp)
-                }
+                RepeatButton(
+                    label = "+",
+                    onStep = { onPlayerChange(player.copy(life = player.life + 1)) }
+                )
             }
 
             Row(
@@ -204,14 +192,16 @@ fun PlayerCard(
                     onPlayerChange(player.copy(commanderDamages = list))
                 }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_commander),
-                        contentDescription = "Dégâts de Commandant"
+                        painter = painterResource(id = R.drawable.ic_sword),
+                        contentDescription = "Dégâts de Commandant",
+                        tint = Color.White
                     )
                 }
                 Text(
                     text = player.commanderDamages.sumOf { it.damage }.toString(),
                     modifier = Modifier.padding(start = 4.dp),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White
                 )
             }
         }
@@ -292,6 +282,39 @@ fun TutorialOverlay(onDismiss: () -> Unit) {
                 textAlign = TextAlign.Center
             )
         }
+    }
+}
+
+@Composable
+private fun RepeatButton(
+    label: String,
+    onStep: () -> Unit,
+    initialDelayMs: Long = 300L,
+    repeatDelayMs: Long = 120L
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            onStep()
+            delay(initialDelayMs)
+            while (isPressed) {
+                onStep()
+                delay(repeatDelayMs)
+            }
+        }
+    }
+
+    Button(
+        onClick = { /* géré via la détection de pression */ },
+        interactionSource = interactionSource,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White,
+            contentColor = Color.Black
+        )
+    ) {
+        Text(text = label, fontSize = 20.sp, fontWeight = FontWeight.Bold)
     }
 }
 
